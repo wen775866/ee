@@ -2385,7 +2385,7 @@ function onSelectMahjongScene(mode: MahjongSceneMode) {
   currentTheme.value = getGameTheme('mahjong');
   showChatDrawer.value = false;
   currentWaitingRoomPlayers.value = [];
-  currentView.value = 'waiting-room';
+  currentView.value = 'chatroom';
   notifyPresence('mahjong', mode);
   sendSceneJoinOverWs('mahjong', mode);
   soundFX.playTap();
@@ -2413,7 +2413,7 @@ function onSelectShisanshuiScene(mode: ShisanshuiSceneMode) {
   if (mode === 'four-booking' || mode === 'eight-booking') {
     currentView.value = 'arena';
   } else {
-    currentView.value = 'waiting-room';
+    currentView.value = 'chatroom';
     notifyPresence('shisanshui', mode);
     sendSceneJoinOverWs('shisanshui', mode);
   }
@@ -2439,7 +2439,7 @@ function onSelectYansanScene(mode: YansanSceneMode) {
   currentTheme.value = getGameTheme('yansan');
   showChatDrawer.value = false;
   currentWaitingRoomPlayers.value = [];
-  currentView.value = 'waiting-room';
+  currentView.value = 'chatroom';
   notifyPresence('yansan', mode);
   sendSceneJoinOverWs('yansan', mode);
   soundFX.playTap();

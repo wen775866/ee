@@ -636,7 +636,7 @@ function getPlayerBySeat(seat: number) {
 function isSeatBot(seat: number): boolean {
   if (props.isPracticeMode) return seat !== mySeat.value;
   const p = getPlayerBySeat(seat);
-  if (!p) return seat !== mySeat.value;
+  if (!p) return false;
   return Boolean(p.isSimulated || p.id?.startsWith('BOT-') || p.id?.startsWith('sim-') || (p as any).isAi);
 }
 
@@ -1416,6 +1416,10 @@ function applyDeal(deal: any, forceReApply = false) {
 function dealNewMatch() {
   if (props.initialDeal?.seatCards) {
     applyDeal(props.initialDeal);
+    return;
+  }
+  if (!props.isPracticeMode) {
+    console.log('🛡️ [真实连线局] 等待服务器 4 人满员广播发牌，禁止本地擅自生牌');
     return;
   }
   if (!selectedRoom.value) return;
@@ -3535,6 +3539,16 @@ function runBotTurns(startSeat: number) {
     } else if (!checkPlayerAutoTurnActions()) {
       startTurnCountdown();
     }
+    return;
+  }
+
+  // 🛡️ 真实连线局绝不替真人玩家出牌：若席位 s 不是机器人，仅标记轮到该席位，等待其网络指令
+  if (!isSeatBot(s)) {
+    turnSeat.value = s;
+    const seatNames = ['本家', '西席', '北席', '东席'];
+    seatStatus[s] = `等待 ${seatNames[s]} 出牌...`;
+    drawTable();
+    emitStatus();
     return;
   }
 
