@@ -2266,12 +2266,6 @@ function startPracticeGame(gt: GameType, sceneMode: string) {
 
   const maxPlayers = (gt === 'shisanshui' && (sceneMode === 'eight-realtime' || sceneMode === 'eight-booking')) ? 8 : 4;
 
-  const names = [
-    '岭南雀神', '濠江巧手', '九龙少侠', '秦淮雅客',
-    '风雷快刀', '白鹭居士', '云梦渔樵', '天元棋客'
-  ];
-  const avatars = ['🤠', '🥷', '🧝', '🧙', '🤴', '👸', '🧔', '🧑‍🎨'];
-
   const players: ScenePlayer[] = [
     {
       id: userProfile.id || 'P-me',
@@ -2287,8 +2281,8 @@ function startPracticeGame(gt: GameType, sceneMode: string) {
   for (let i = 1; i < maxPlayers; i++) {
     players.push({
       id: `sim-${Date.now()}-${i}`,
-      name: `${names[i % names.length]}_${Math.floor(10 + Math.random() * 90)}`,
-      avatar: avatars[i % avatars.length],
+      name: `人机${i}`,
+      avatar: '🤖',
       rating: Math.floor(1800 + Math.random() * 300),
       coins: Math.floor(2000 + Math.random() * 3000),
       seat: i,

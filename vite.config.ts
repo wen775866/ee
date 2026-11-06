@@ -828,35 +828,19 @@ function chessWebSocketPlugin(): Plugin {
                 }
               }
               if (targetRoom && targetRoom.players.length < targetRoom.maxPlayers) {
-                const BOT_POOL = [
-                  { name: '李探花', avatar: '🪭', rating: 1950, coins: 5000 },
-                  { name: '赵掌柜', avatar: '🍵', rating: 1880, coins: 4200 },
-                  { name: '钱百万', avatar: '💰', rating: 2060, coins: 8800 },
-                  { name: '孙少侠', avatar: '⚔️', rating: 1910, coins: 3600 },
-                  { name: '柳如是', avatar: '🌸', rating: 1840, coins: 2900 },
-                  { name: '周巡捕', avatar: '🛡️', rating: 1970, coins: 6100 },
-                  { name: '吴秀才', avatar: '📜', rating: 1860, coins: 3300 },
-                ];
-                const existingNames = new Set(targetRoom.players.map((p: any) => p.name));
-                const availableBots = BOT_POOL.filter((b) => !existingNames.has(b.name));
-
+                let botNum = 1;
                 while (targetRoom.players.length < targetRoom.maxPlayers) {
                   const nextSeat = targetRoom.players.length;
-                  const botInfo = availableBots.pop() || {
-                    name: `茶客 #${nextSeat + 1}`,
-                    avatar: '👑',
-                    rating: 1880 + Math.floor(Math.random() * 150),
-                    coins: 3000 + Math.floor(Math.random() * 2000),
-                  };
                   targetRoom.players.push({
                     id: `BOT-${targetRoom.id}-${nextSeat}`,
-                    name: botInfo.name,
-                    avatar: botInfo.avatar,
-                    rating: botInfo.rating,
-                    coins: botInfo.coins,
+                    name: `人机${botNum}`,
+                    avatar: '🤖',
+                    rating: 1880 + Math.floor(Math.random() * 150),
+                    coins: 3000 + Math.floor(Math.random() * 2000),
                     seat: nextSeat,
                     isSimulated: true,
                   });
+                  botNum++;
                 }
 
                 broadcast({

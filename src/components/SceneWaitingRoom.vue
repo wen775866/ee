@@ -194,22 +194,22 @@
                 {{ isStarting ? `🎉 全员满座 (${currentPlayers.length}/${maxPlayers})！牌局即将自动开启` : `正在等待牌友选择相同场景入座 (${currentPlayers.length}/${maxPlayers})` }}
               </div>
               <div class="text-[9px] sm:text-[10px] text-[#D4C3B3] font-mono mt-0.5 truncate">
-                {{ isStarting ? `各席位已就位，倒计时 ${countdownSeconds} 秒后发牌...` : (autoMatchSeconds > 0 ? `纯真人实时匹配中 · ${autoMatchSeconds}秒后自动凑齐茶客开战` : '纯真人实时排队匹配 · 满座即刻自动开战') }}
+                {{ isStarting ? `各席位已就位，倒计时 ${countdownSeconds} 秒后发牌...` : (props.isPracticeMode && autoMatchSeconds > 0 ? `试玩模式匹配中 · ${autoMatchSeconds}秒后自动补齐人机` : '纯真人实时排队匹配 · 满座即刻自动开战') }}
               </div>
             </div>
           </div>
 
           <div class="flex items-center gap-2 shrink-0">
-            <!-- 快速凑齐开局按钮 -->
+            <!-- 补齐人机开局按钮（仅在试玩模式下显示，真实玩家对局严禁人机补位） -->
             <button
-              v-if="!isStarting && currentPlayers.length < maxPlayers"
+              v-if="props.isPracticeMode && !isStarting && currentPlayers.length < maxPlayers"
               type="button"
               @click="triggerQuickMatch"
               class="px-2.5 sm:px-3 py-1 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-xs shadow-md border border-yellow-300 active:scale-95 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 animate-pulse"
-              title="立即快速补齐席位并自动开局"
+              title="试玩模式：立即补齐人机席位并自动开局"
             >
               <span>⚡</span>
-              <span>极速凑齐开局</span>
+              <span>补齐人机开局</span>
             </button>
             <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/25 text-amber-300 font-mono font-bold text-xs border border-amber-400/40">
               {{ currentPlayers.length }} / {{ maxPlayers }}
@@ -562,6 +562,8 @@ function triggerAutoStartCountdown(dealOverride?: any) {
 }
 
 function startAutoMatchCountdown() {
+  // 真实玩家入座严禁人机补位，仅试玩模式支持自动补齐人机
+  if (!props.isPracticeMode) return;
   if (autoMatchTimer) clearInterval(autoMatchTimer);
   autoMatchSeconds.value = 6;
   autoMatchTimer = setInterval(() => {
@@ -588,8 +590,8 @@ function triggerQuickMatch() {
     autoMatchTimer = null;
   }
 
-  // 1. 若 WebSocket 正常连线，向服务端发起 scene_fill_bots 快速满座
-  if (props.ws && props.ws.readyState === WebSocket.OPEN) {
+  // 仅试玩/单机模式进行本地人机补位，真实玩家排队严禁人机补位
+  if (props.isPracticeMode && props.ws && props.ws.readyState === WebSocket.OPEN) {
     try {
       props.ws.send(JSON.stringify({
         type: 'scene_fill_bots',
@@ -600,39 +602,22 @@ function triggerQuickMatch() {
     } catch {}
   }
 
-  // 2. 本地兜底填满席位并生成权威对局，确保 100% 满员平滑开局
-  const BOT_TEMPLATES = [
-    { name: '李探花', avatar: '🪭', rating: 1950, coins: 5000 },
-    { name: '赵掌柜', avatar: '🍵', rating: 1880, coins: 4200 },
-    { name: '钱百万', avatar: '💰', rating: 2060, coins: 8800 },
-    { name: '孙少侠', avatar: '⚔️', rating: 1910, coins: 3600 },
-    { name: '柳如是', avatar: '🌸', rating: 1840, coins: 2900 },
-    { name: '周巡捕', avatar: '🛡️', rating: 1970, coins: 6100 },
-    { name: '吴秀才', avatar: '📜', rating: 1860, coins: 3300 },
-  ];
-
   const existingSeats = new Set(currentPlayers.value.map((p) => p.seat));
-  const existingNames = new Set(currentPlayers.value.map((p) => p.name));
-  const availableBots = BOT_TEMPLATES.filter((b) => !existingNames.has(b.name));
-
   const newPlayers = [...currentPlayers.value];
+  let botCounter = 1;
+
   for (let s = 0; s < props.maxPlayers; s++) {
     if (!existingSeats.has(s)) {
-      const bot = availableBots.pop() || {
-        name: `茶客 #${s + 1}`,
-        avatar: '👑',
-        rating: 1880 + Math.floor(Math.random() * 150),
-        coins: 3000 + Math.floor(Math.random() * 2000),
-      };
       newPlayers.push({
         id: `BOT-${props.gameType}-${s}`,
-        name: bot.name,
-        avatar: bot.avatar,
-        rating: bot.rating,
-        coins: bot.coins,
+        name: `人机${botCounter}`,
+        avatar: '🤖',
+        rating: 1880 + Math.floor(Math.random() * 150),
+        coins: 3000 + Math.floor(Math.random() * 2000),
         seat: s,
         isSimulated: true,
       });
+      botCounter++;
       existingSeats.add(s);
     }
   }
