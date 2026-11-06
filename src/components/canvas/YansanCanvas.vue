@@ -3310,9 +3310,11 @@ function findAllWinningCombos(cardList: Card[], rawTarget: any, seat: number): C
         if (sub.includes(15)) isSeq = false;
         const is10JQKA = sub[0] === 10 && sub[4] === 14;
         if (isSeq && !is10JQKA) {
-          const combo = sub.map((r) => cards.find((c) => c.rank === r)!);
-          const ev = evaluateCombo(combo, seat);
-          if (ev) results.push(combo);
+          const combo = sub.map((r) => cards.find((c) => c.rank === r)).filter(Boolean) as Card[];
+          if (combo.length === 5) {
+            const ev = evaluateCombo(combo, seat);
+            if (ev) results.push(combo);
+          }
         }
       }
       // 同花
@@ -3332,11 +3334,12 @@ function findAllWinningCombos(cardList: Card[], rawTarget: any, seat: number): C
 
     // 烟三铁律：每局首出必须包含方块4 (♦4)
     if (isFirstTurn.value) {
-      const d4Combos = results.filter((cList) => cList.some((c) => c.rank === 4 && c.suit === '♦'));
+      const isD4 = (c: Card) => Boolean(c && c.rank === 4 && (c.suit === '♦' || c.suitVal === 1 || c.id?.includes('♦')));
+      const d4Combos = results.filter((cList) => Array.isArray(cList) && cList.some(isD4));
       if (d4Combos.length > 0) {
         return d4Combos;
       }
-      const d4Card = cards.find((c) => c.rank === 4 && c.suit === '♦');
+      const d4Card = cards.find(isD4);
       if (d4Card) return [[d4Card]];
     }
 
@@ -3403,18 +3406,22 @@ function findAllWinningCombos(cardList: Card[], rawTarget: any, seat: number): C
       if (sub.includes(15)) isSeq = false;
       const is10JQKA = sub[0] === 10 && sub[4] === 14;
       if (isSeq && !is10JQKA) {
-        const combo = sub.map((r) => cards.find((c) => c.rank === r)!);
-        const ev = evaluateCombo(combo, seat);
-        if (ev && canBeat(ev, target)) {
-          results.push(combo);
+        const combo = sub.map((r) => cards.find((c) => c.rank === r)).filter(Boolean) as Card[];
+        if (combo.length === 5) {
+          const ev = evaluateCombo(combo, seat);
+          if (ev && canBeat(ev, target)) {
+            results.push(combo);
+          }
         }
       }
     }
     if (uniqueRanks.includes(3) && uniqueRanks.includes(4) && uniqueRanks.includes(5) && uniqueRanks.includes(14) && uniqueRanks.includes(15)) {
-      const combo = [3, 4, 5, 14, 15].map((r) => cards.find((c) => c.rank === r)!);
-      const ev = evaluateCombo(combo, seat);
-      if (ev && canBeat(ev, target)) {
-        results.push(combo);
+      const combo = [3, 4, 5, 14, 15].map((r) => cards.find((c) => c.rank === r)).filter(Boolean) as Card[];
+      if (combo.length === 5) {
+        const ev = evaluateCombo(combo, seat);
+        if (ev && canBeat(ev, target)) {
+          results.push(combo);
+        }
       }
     }
 
@@ -3487,7 +3494,7 @@ function handleHint() {
   const targetCombo = (lastCombo.value && lastCombo.value.seat !== mySeat.value) ? normalizeTargetCombo(lastCombo.value) : null;
   const stateKey = `${currentHand.map((c) => c.id).sort().join(',')}_${targetCombo ? targetCombo.primaryRank + '_' + targetCombo.type + '_' + (targetCombo.comboTier || 0) : (isFirstTurn.value ? 'lead_d4' : 'lead')}`;
 
-  if (lastHintStateKey.value !== stateKey) {
+  if (lastHintStateKey.value !== stateKey || !hintCombos.value || hintCombos.value.length === 0) {
     lastHintStateKey.value = stateKey;
     hintCombos.value = findAllWinningCombos(currentHand, targetCombo, mySeat.value);
     hintIndex.value = 0;
@@ -3495,13 +3502,17 @@ function handleHint() {
 
   selectedIds.clear();
 
-  if (hintCombos.value.length > 0) {
+  if (hintCombos.value && hintCombos.value.length > 0) {
     if (hintIndex.value >= hintCombos.value.length) {
       hintIndex.value = 0;
     }
     const combo = hintCombos.value[hintIndex.value];
-    if (combo && combo.length > 0) {
-      combo.forEach((c) => selectedIds.add(c.id));
+    if (combo && Array.isArray(combo) && combo.length > 0) {
+      combo.forEach((c) => {
+        if (c && c.id) {
+          selectedIds.add(c.id);
+        }
+      });
     }
     hintIndex.value = (hintIndex.value + 1) % hintCombos.value.length;
     if (typeof soundFX.playTap === 'function') soundFX.playTap();
