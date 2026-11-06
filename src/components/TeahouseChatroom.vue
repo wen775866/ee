@@ -1915,7 +1915,8 @@ function handleWsMessage(event: MessageEvent) {
     if (msg.type === 'scene_join_ack' || msg.type === 'scene_room_update' || msg.type === 'scene_room_full' || msg.type === 'scene_room_started' || msg.type === 'game_deal') {
       if (!hasJoinedScene.value) return;
       if (msg.gameType === props.activeGameType && msg.sceneMode === props.activeSceneMode) {
-        const isMeInRoom = (msg.roomId && currentRoomId.value && msg.roomId === currentRoomId.value) ||
+        const isMeInRoom = (msg.type === 'scene_room_full' || msg.type === 'scene_room_started') ||
+          (msg.roomId && currentRoomId.value && msg.roomId === currentRoomId.value) ||
           (msg.roomId && !currentRoomId.value) ||
           (Array.isArray(msg.players) && msg.players.some((p: any) =>
             (props.currentUser?.id && (p.id === props.currentUser.id || p.originalId === props.currentUser.id || (typeof p.id === 'string' && p.id.startsWith(props.currentUser.id)))) ||

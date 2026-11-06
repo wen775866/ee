@@ -2806,6 +2806,7 @@ function connectWs() {
           (msg.roomId && !activeRoomId.value && (currentView.value === 'waiting-room' || currentView.value === 'chatroom')) ||
           (Array.isArray(playersArr) && playersArr.some((p: any) =>
             (userProfile.id && (p.id === userProfile.id || p.originalId === userProfile.id || (typeof p.id === 'string' && p.id.startsWith(userProfile.id)))) ||
+            (myAssignedPlayerId.value && (p.id === myAssignedPlayerId.value || p.originalId === myAssignedPlayerId.value || (typeof p.id === 'string' && p.id.startsWith(myAssignedPlayerId.value)))) ||
             (userProfile.name && p.name === userProfile.name)
           ));
         if (isMeInRoom) {

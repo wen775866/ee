@@ -997,14 +997,6 @@ function handleWsMessage(event: MessageEvent) {
       }
     } else if (msg.type === 'scene_room_full') {
       if (msg.gameType === props.gameType && msg.sceneMode === props.sceneMode) {
-        const isMeInRoom = (msg.roomId && currentRoomId.value && msg.roomId === currentRoomId.value) ||
-          (msg.roomId && !currentRoomId.value) ||
-          (Array.isArray(msg.players) && msg.players.some((p: any) =>
-            (props.currentUser?.id && (p.id === props.currentUser.id || p.originalId === props.currentUser.id || (typeof p.id === 'string' && p.id.startsWith(props.currentUser.id)))) ||
-            (props.currentUser?.name && p.name === props.currentUser.name)
-          ));
-        if (!isMeInRoom && msg.players && msg.players.length > 0 && currentRoomId.value && msg.roomId !== currentRoomId.value) return;
-
         if (msg.roomId) {
           currentRoomId.value = msg.roomId;
         }
@@ -1018,14 +1010,6 @@ function handleWsMessage(event: MessageEvent) {
       }
     } else if (msg.type === 'scene_room_started' || msg.type === 'game_deal') {
       if (msg.gameType === props.gameType && msg.sceneMode === props.sceneMode) {
-        const isMeInRoom = (msg.roomId && currentRoomId.value && msg.roomId === currentRoomId.value) ||
-          (msg.roomId && !currentRoomId.value) ||
-          (Array.isArray(msg.players) && msg.players.some((p: any) =>
-            (props.currentUser?.id && (p.id === props.currentUser.id || p.originalId === props.currentUser.id || (typeof p.id === 'string' && p.id.startsWith(props.currentUser.id)))) ||
-            (props.currentUser?.name && p.name === props.currentUser.name)
-          ));
-        if (!isMeInRoom && msg.players && msg.players.length > 0 && currentRoomId.value && msg.roomId !== currentRoomId.value) return;
-
         if (msg.roomId) {
           currentRoomId.value = msg.roomId;
         }
@@ -1035,7 +1019,7 @@ function handleWsMessage(event: MessageEvent) {
         if (Array.isArray(msg.players)) {
           currentPlayers.value = msg.players;
         }
-        launchGameNow(msg.deal);
+        triggerAutoStartCountdown(msg.deal);
       }
     } else if (msg.type === 'scene_chat_broadcast') {
       if (msg.gameType === props.gameType && msg.sceneMode === props.sceneMode) {
