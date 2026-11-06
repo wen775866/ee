@@ -1550,9 +1550,9 @@ function onRestartGame() {
   }
 }
 
-watch([() => props.initialDeal, () => props.roomPlayers], ([newDeal, players]) => {
+watch([() => props.initialDeal, () => props.roomPlayers], ([newDeal]) => {
   if (newDeal?.seatCards) {
-    applyDeal(newDeal, Boolean(players && players.length > 0));
+    applyDeal(newDeal, false);
   }
 }, { immediate: true, deep: true });
 
@@ -3733,8 +3733,8 @@ function onWsMessage(ev: MessageEvent) {
     if (msg.type === 'game_deal') {
       lastProcessedMoveCount = -1;
       lastProcessedMoveKey = '';
-      if (msg.deal) applyDeal(msg.deal, true);
-    } else if (msg.type === 'scene_join_ack' || msg.type === 'scene_room_full' || msg.type === 'scene_room_started') {
+      if (msg.deal) applyDeal(msg.deal, false);
+    } else if (msg.type === 'scene_join_ack' || msg.type === 'scene_room_full' || msg.type === 'scene_room_started' || msg.type === 'scene_reconnect_ack') {
       lastProcessedMoveCount = -1;
       lastProcessedMoveKey = '';
       if (msg.deal) {
